@@ -18,6 +18,7 @@ namespace Rhisis.Network.Packets.World
         /// </summary>
         public uint ObjectId { get; }
 
+<<<<<<< HEAD
         /// <summary>
         /// Gets the second parameter.
         /// </summary>
@@ -31,14 +32,25 @@ namespace Rhisis.Network.Packets.World
         /// <summary>
         /// Gets the attack speed.
         /// </summary>
+=======
+        public int AttackFlags { get; }
+
+>>>>>>> Add melee attack miss flag
         public float WeaponAttackSpeed { get; }
 
         public MeleeAttackPacket(INetPacketStream packet)
         {
+<<<<<<< HEAD
             this.AttackMessage = (ObjectMessageType)packet.Read<uint>();
             this.ObjectId = packet.Read<uint>();
             this.Parameter2 = packet.Read<int>(); // Always 0
             this.Parameter3 = packet.Read<int>(); // Possibly error number returned from client
+=======
+            this.AttackMessage = packet.Read<int>();
+            this.ObjectId = packet.Read<int>();
+            packet.Read<int>(); // Always 0; don't need to store it
+            this.AttackFlags = packet.Read<int>() & 0xFFFF; // Attack flags ?!
+>>>>>>> Add melee attack miss flag
             this.WeaponAttackSpeed = packet.Read<float>();
         }
 

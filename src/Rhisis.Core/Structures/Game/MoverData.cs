@@ -41,6 +41,12 @@ namespace Rhisis.Core.Structures.Game
         [DataMember(Name = "dwAtkMax")]
         public int AttackMax { get; set; }
 
+        [DataMember(Name = "dwHR")]
+        public int HitRating { get; set; }
+
+        [DataMember(Name = "dwER")]
+        public int EscapeRating { get; set; }
+
         public override string ToString() => this.Name;
     }
 }
