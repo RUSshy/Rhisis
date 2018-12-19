@@ -1,4 +1,5 @@
-﻿using Rhisis.Core.Helpers;
+﻿using Rhisis.Core.Data;
+using Rhisis.Core.Helpers;
 using Rhisis.World.Game.Common;
 using Rhisis.World.Game.Core;
 using Rhisis.World.Game.Entities;
@@ -42,6 +43,9 @@ namespace Rhisis.World.Systems.Battle
             if (attackResult.Flags.HasFlag(AttackFlags.AF_MISS))
                 return attackResult;
 
+            int attackMin = 0;
+            int attackMax = 0;
+
             if (this._attacker is IPlayerEntity player)
             {
                 Item rightWeapon = player.Inventory.GetItem(x => x.Slot == InventorySystem.RightWeaponSlot);
@@ -51,16 +55,25 @@ namespace Rhisis.World.Systems.Battle
 
                 // TODO: GetDamagePropertyFactor()
                 int weaponAttack = BattleHelper.GetWeaponAttackDamages(rightWeapon.Data.WeaponType, player);
-                int weaponMinAbility = rightWeapon.Data.AbilityMin * 2 + weaponAttack;
-                int weaponMaxAbility = rightWeapon.Data.AbilityMax * 2 + weaponAttack;
-
-                attackResult.Damages = RandomHelper.Random(weaponMinAbility, weaponMaxAbility);
+                attackMin = rightWeapon.Data.AbilityMin * 2 + weaponAttack;
+                attackMax = rightWeapon.Data.AbilityMax * 2 + weaponAttack;
             }
             else if (this._attacker is IMonsterEntity monster)
             {
-                attackResult.Damages = RandomHelper.Random(monster.Data.AttackMin, monster.Data.AttackMax);
+                attackMin = monster.Data.AttackMin;
+                attackMax = monster.Data.AttackMax;
             }
 
+            if (this.IsCriticalAttack(this._attacker, attackResult.Flags))
+            {
+                attackResult.Flags |= AttackFlags.AF_CRITICAL;
+                this.CalculateCriticalDamages(ref attackMin, ref attackMax);
+
+                if (this.IsKnockback(attackResult.Flags))
+                    attackResult.Flags |= AttackFlags.AF_FLYING;
+            }
+
+            attackResult.Damages = RandomHelper.Random(attackMin, attackMax);
             if (attackResult.Damages < 0)
                 attackResult.Damages = 0;
 
@@ -131,6 +144,87 @@ namespace Rhisis.World.Systems.Battle
                 return monster.Data.EscapeRating;
 
             return 0;
+        }
+
+        /// <summary>
+        /// Check if the attacker's melee attack is a critical hit.
+        /// </summary>
+        /// <param name="attacker">Attacker</param>
+        /// <param name="currentAttackFlags">Attack flags</param>
+        /// <returns></returns>
+        public bool IsCriticalAttack(ILivingEntity attacker, AttackFlags currentAttackFlags)
+        {
+            if (currentAttackFlags.HasFlag(AttackFlags.AF_MELEESKILL) || currentAttackFlags.HasFlag(AttackFlags.AF_MAGICSKILL))
+                return false;
+
+            float criticalJobFactor = attacker is IPlayerEntity player ? player.PlayerData.JobData.Critical : 1f;
+            int criticalProbability = (int)((attacker.Statistics.Dexterity / 10) * criticalJobFactor);
+            // TODO: add DST_CHR_CHANCECRITICAL to criticalProbability
+
+            if (criticalProbability < 0)
+                criticalProbability = 0;
+
+            // TODO: check if player is in party and if it has the MVRF_CRITICAL flag
+
+            return RandomHelper.Random(0, 100) < criticalProbability;
+        }
+
+        public void CalculateCriticalDamages(ref int attackMin, ref int attackMax)
+        {
+            float criticalMin = 1.1f;
+            float criticalMax = 1.4f;
+
+            if (this._attacker.Object.Level > this._defender.Object.Level)
+            {
+                if (this._defender.Type == WorldEntityType.Monster)
+                {
+                    criticalMin = 1.2f;
+                    criticalMax = 2.0f;
+                }
+                else
+                {
+                    criticalMin = 1.4f;
+                    criticalMax = 1.8f;
+                }
+            }
+
+            float criticalBonus = 1; // TODO: 1 + (DST_CRITICAL_BONUS / 100)
+
+            if (criticalBonus < 0.1f)
+                criticalBonus = 0.1f;
+
+            attackMin = (int)(attackMin * criticalMin * criticalBonus);
+            attackMax = (int)(attackMax * criticalMax * criticalBonus);
+        }
+
+        public bool IsKnockback(AttackFlags attackerAttackFlags)
+        {
+            bool knockbackChance = RandomHelper.Random(0, 100) < 15;
+
+            if (this._defender.Type == WorldEntityType.Player)
+                return false;
+
+            if (this._attacker is IPlayerEntity player)
+            {
+                var weapon = player.Inventory[InventorySystem.RightWeaponSlot];
+
+                if (weapon == null)
+                    weapon = InventorySystem.Hand;
+                if (weapon.Data.WeaponType == WeaponType.MELEE_YOYO || attackerAttackFlags.HasFlag(AttackFlags.AF_FORCE))
+                    return false;
+            }
+
+            bool canFly = false;
+
+            // TODO: if is flying, return false
+            if ((this._defender.Object.MovingFlags & ObjectState.OBJSTA_DMG_FLY_ALL) == 0 && this._defender is IMonsterEntity monster)
+            {
+                canFly = monster.Data.Class != MoverClassType.RANK_SUPER && 
+                    monster.Data.Class != MoverClassType.RANK_MATERIAL && 
+                    monster.Data.Class != MoverClassType.RANK_MIDBOSS;
+            }
+
+            return canFly && knockbackChance;
         }
     }
 }

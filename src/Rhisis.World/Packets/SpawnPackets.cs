@@ -46,8 +46,8 @@ namespace Rhisis.World.Packets
                 packet.Write<short>(0); // m_dwMotion
                 packet.Write<byte>(1); // m_bPlayer
                 packet.Write(player.Health.Hp); // HP
-                packet.Write(0); // moving flags
-                packet.Write(0); // motion flags
+                packet.Write((int)player.Object.MovingFlags); // moving flags
+                packet.Write((int)player.Object.MotionFlags); // motion flags
                 packet.Write<byte>(1); // m_dwBelligerence
 
                 packet.Write(-1); // m_dwMoverSfxId

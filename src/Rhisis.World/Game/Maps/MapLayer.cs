@@ -134,6 +134,13 @@ namespace Rhisis.World.Game.Maps
                 Mp = moverData.AddMp,
                 Fp = 0
             };
+            monster.Statistics = new StatisticsComponent
+            {
+                Strength = (ushort)moverData.Strength,
+                Stamina = (ushort)moverData.Stamina,
+                Dexterity = (ushort)moverData.Dexterity,
+                Intelligence = (ushort)moverData.Intelligence
+            };
             monster.Behavior = behaviors.MonsterBehaviors.GetBehavior(monster.Object.ModelId);
             monster.Region = respawner;
             monster.Data = moverData;

@@ -39,6 +39,9 @@ namespace Rhisis.World.Game.Entities
         public HealthComponent Health { get; set; }
 
         /// <inheritdoc />
+        public StatisticsComponent Statistics { get; set; }
+
+        /// <inheritdoc />
         public MoverData Data { get; set; }
 
         /// <summary>

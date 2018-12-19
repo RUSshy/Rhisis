@@ -1,4 +1,6 @@
 ﻿using NLog;
+using Rhisis.Core.Helpers;
+using Rhisis.Core.Structures;
 using Rhisis.World.Game.Common;
 using Rhisis.World.Game.Core;
 using Rhisis.World.Game.Core.Systems;
@@ -53,6 +55,21 @@ namespace Rhisis.World.Systems.Battle
 
             if (!(attacker is IPlayerEntity player))
                 return;
+
+            if (meleeAttackResult.Flags.HasFlag(AttackFlags.AF_FLYING))
+            {
+                var delta = new Vector3();
+                float angle = MathHelper.ToRadian(e.Target.Object.Angle);
+                float angleY = MathHelper.ToRadian(145f);
+
+                delta.Y = (float)(-Math.Cos(angleY) * 0.18f);
+                float dist = (float)(Math.Sin(angleY) * 0.18f);
+                delta.X = (float)(Math.Sin(angle) * dist);
+                delta.Z = (float)(-Math.Cos(angle) * dist);
+
+                e.Target.MovableComponent.DestinationPosition.X += delta.X;
+                e.Target.MovableComponent.DestinationPosition.Z += delta.Z;
+            }
 
             WorldPacketFactory.SendAddDamage(player, e.Target, attacker, meleeAttackResult.Flags, meleeAttackResult.Damages);
         }

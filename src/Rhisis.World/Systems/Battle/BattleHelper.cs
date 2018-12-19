@@ -72,7 +72,7 @@ namespace Rhisis.World.Systems.Battle
         }
 
         // TODO: move this to utility
-        private static int MulDiv(int number, int numerator, int denominator)
+        public static int MulDiv(int number, int numerator, int denominator)
         {
             return (int)(((long)number * numerator) / denominator);
         }

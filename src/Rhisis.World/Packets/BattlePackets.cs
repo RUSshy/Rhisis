@@ -7,19 +7,21 @@ namespace Rhisis.World.Packets
 {
     public static partial class WorldPacketFactory
     {
-        public static void SendAddDamage(IPlayerEntity player, ILivingEntity damageReceiver, ILivingEntity damageSender, AttackFlags atkFlags, int damage)
+        public static void SendAddDamage(IPlayerEntity player, ILivingEntity defender, ILivingEntity attacker, AttackFlags attackFlags, int damage)
         {
             using (var packet = new FFPacket())
             {
-                packet.StartNewMergedPacket(damageReceiver.Id, SnapshotType.DAMAGE);
-                packet.Write(damageSender.Id);
-                packet.Write((uint)damage);
-                packet.Write((uint)atkFlags);
+                packet.StartNewMergedPacket(defender.Id, SnapshotType.DAMAGE);
+                packet.Write(attacker.Id);
+                packet.Write(damage);
+                packet.Write((int)attackFlags);
 
-                if(atkFlags.HasFlag(AttackFlags.AF_FLYING))
+                if(attackFlags.HasFlag(AttackFlags.AF_FLYING))
                 {
-                    packet.Write(damageReceiver.Object.Position);
-                    packet.Write(damageReceiver.Object.Angle);
+                    packet.Write(defender.MovableComponent.DestinationPosition.X);
+                    packet.Write(defender.MovableComponent.DestinationPosition.Y);
+                    packet.Write(defender.MovableComponent.DestinationPosition.Z);
+                    packet.Write(defender.Object.Angle);
                 }
 
                 player.Connection.Send(packet);
