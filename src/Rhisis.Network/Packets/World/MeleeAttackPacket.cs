@@ -19,6 +19,7 @@ namespace Rhisis.Network.Packets.World
         public uint ObjectId { get; }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         /// <summary>
         /// Gets the second parameter.
         /// </summary>
@@ -33,6 +34,10 @@ namespace Rhisis.Network.Packets.World
         /// Gets the attack speed.
         /// </summary>
 =======
+=======
+        public int UnknownParameter { get; set; }
+
+>>>>>>> Add send melee attack packet to visible players
         public int AttackFlags { get; }
 
 >>>>>>> Add melee attack miss flag
@@ -48,7 +53,7 @@ namespace Rhisis.Network.Packets.World
 =======
             this.AttackMessage = packet.Read<int>();
             this.ObjectId = packet.Read<int>();
-            packet.Read<int>(); // Always 0; don't need to store it
+            this.UnknownParameter = packet.Read<int>(); // ??
             this.AttackFlags = packet.Read<int>() & 0xFFFF; // Attack flags ?!
 >>>>>>> Add melee attack miss flag
             this.WeaponAttackSpeed = packet.Read<float>();

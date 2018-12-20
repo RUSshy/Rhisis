@@ -1,9 +1,11 @@
 ﻿using Rhisis.Core.Data;
 using Rhisis.Core.Helpers;
+using Rhisis.Core.Structures;
 using Rhisis.World.Game.Common;
 using Rhisis.World.Game.Entities;
 using Rhisis.World.Game.Structures;
 using Rhisis.World.Systems.Inventory;
+using System;
 
 namespace Rhisis.World.Systems.Battle
 {
@@ -75,6 +77,25 @@ namespace Rhisis.World.Systems.Battle
         public static int MulDiv(int number, int numerator, int denominator)
         {
             return (int)(((long)number * numerator) / denominator);
+        }
+
+        /// <summary>
+        /// Knocks back an entity by calculating his destination position.
+        /// </summary>
+        /// <param name="entity">Entity to knockback</param>
+        public static void KnockbackEntity(ILivingEntity entity)
+        {
+            var delta = new Vector3();
+            float angle = MathHelper.ToRadian(entity.Object.Angle);
+            float angleY = MathHelper.ToRadian(145f);
+
+            delta.Y = (float)(-Math.Cos(angleY) * 0.18f);
+            float dist = (float)(Math.Sin(angleY) * 0.18f);
+            delta.X = (float)(Math.Sin(angle) * dist);
+            delta.Z = (float)(-Math.Cos(angle) * dist);
+
+            entity.MovableComponent.DestinationPosition.X += delta.X;
+            entity.MovableComponent.DestinationPosition.Z += delta.Z;
         }
     }
 }

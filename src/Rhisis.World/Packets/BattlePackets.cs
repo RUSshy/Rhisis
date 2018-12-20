@@ -28,5 +28,19 @@ namespace Rhisis.World.Packets
                 SendToVisible(packet, player);
             }
         }
+
+        public static void SendMeleeAttack(IPlayerEntity player, int motion, int targetId, int unknwonParam, int attackFlags)
+        {
+            using (var packet = new FFPacket())
+            {
+                packet.StartNewMergedPacket(player.Id, SnapshotType.MELEE_ATTACK);
+                packet.Write(motion);
+                packet.Write(targetId);
+                packet.Write(unknwonParam);
+                packet.Write(attackFlags);
+
+                SendToVisible(packet, player);
+            }
+        }
     }
 }

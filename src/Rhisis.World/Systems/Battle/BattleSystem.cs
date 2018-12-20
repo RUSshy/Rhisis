@@ -1,12 +1,9 @@
 ﻿using NLog;
-using Rhisis.Core.Helpers;
-using Rhisis.Core.Structures;
 using Rhisis.World.Game.Common;
 using Rhisis.World.Game.Core;
 using Rhisis.World.Game.Core.Systems;
 using Rhisis.World.Game.Entities;
 using Rhisis.World.Packets;
-using System;
 
 namespace Rhisis.World.Systems.Battle
 {
@@ -41,6 +38,11 @@ namespace Rhisis.World.Systems.Battle
             }
         }
 
+        /// <summary>
+        /// Process the melee attack algorithm.
+        /// </summary>
+        /// <param name="attacker">Attacker</param>
+        /// <param name="e">Melee attack event arguments</param>
         private void ProcessMeleeAttack(ILivingEntity attacker, MeleeAttackEventArgs e)
         {
             if (e.Target.Health.IsDead)
@@ -57,21 +59,14 @@ namespace Rhisis.World.Systems.Battle
                 return;
 
             if (meleeAttackResult.Flags.HasFlag(AttackFlags.AF_FLYING))
-            {
-                var delta = new Vector3();
-                float angle = MathHelper.ToRadian(e.Target.Object.Angle);
-                float angleY = MathHelper.ToRadian(145f);
-
-                delta.Y = (float)(-Math.Cos(angleY) * 0.18f);
-                float dist = (float)(Math.Sin(angleY) * 0.18f);
-                delta.X = (float)(Math.Sin(angle) * dist);
-                delta.Z = (float)(-Math.Cos(angle) * dist);
-
-                e.Target.MovableComponent.DestinationPosition.X += delta.X;
-                e.Target.MovableComponent.DestinationPosition.Z += delta.Z;
-            }
+                BattleHelper.KnockbackEntity(e.Target);
 
             WorldPacketFactory.SendAddDamage(player, e.Target, attacker, meleeAttackResult.Flags, meleeAttackResult.Damages);
+
+            // TODO: decrease defender's HP
+            // TODO: Check if defender is dead
+            // TODO: if defender is dead & defender is monster -> give exp and drop items.
+            // TODO: if defender is dead & defender is player -> send die packet
         }
     }
 }
