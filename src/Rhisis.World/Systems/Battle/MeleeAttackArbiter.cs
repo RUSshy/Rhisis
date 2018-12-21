@@ -42,10 +42,7 @@ namespace Rhisis.World.Systems.Battle
             
             if (attackResult.Flags.HasFlag(AttackFlags.AF_MISS))
                 return attackResult;
-
-            int attackMin = 0;
-            int attackMax = 0;
-
+            
             if (this._attacker is IPlayerEntity player)
             {
                 Item rightWeapon = player.Inventory.GetItem(x => x.Slot == InventorySystem.RightWeaponSlot);
@@ -55,25 +52,25 @@ namespace Rhisis.World.Systems.Battle
 
                 // TODO: GetDamagePropertyFactor()
                 int weaponAttack = BattleHelper.GetWeaponAttackDamages(rightWeapon.Data.WeaponType, player);
-                attackMin = rightWeapon.Data.AbilityMin * 2 + weaponAttack;
-                attackMax = rightWeapon.Data.AbilityMax * 2 + weaponAttack;
+                attackResult.AttackMin = rightWeapon.Data.AbilityMin * 2 + weaponAttack;
+                attackResult.AttackMax = rightWeapon.Data.AbilityMax * 2 + weaponAttack;
             }
             else if (this._attacker is IMonsterEntity monster)
             {
-                attackMin = monster.Data.AttackMin;
-                attackMax = monster.Data.AttackMax;
+                attackResult.AttackMin = monster.Data.AttackMin;
+                attackResult.AttackMax = monster.Data.AttackMax;
             }
 
             if (this.IsCriticalAttack(this._attacker, attackResult.Flags))
             {
                 attackResult.Flags |= AttackFlags.AF_CRITICAL;
-                this.CalculateCriticalDamages(ref attackMin, ref attackMax);
+                this.CalculateCriticalDamages(attackResult);
 
                 if (this.IsKnockback(attackResult.Flags))
                     attackResult.Flags |= AttackFlags.AF_FLYING;
             }
 
-            attackResult.Damages = RandomHelper.Random(attackMin, attackMax);
+            attackResult.Damages = RandomHelper.Random(attackResult.AttackMin, attackResult.AttackMax);
             if (attackResult.Damages < 0)
                 attackResult.Damages = 0;
 
@@ -92,13 +89,7 @@ namespace Rhisis.World.Systems.Battle
             int hitRating = this.GetHitRating(this._attacker);
             int escapeRating = this.GetEspaceRating(this._defender);
 
-            if (this._attacker.Type == WorldEntityType.Player && this._defender.Type == WorldEntityType.Monster)
-            {
-                // Player VS Monster
-                hitRate = (int)(((hitRating * 1.6f) / (hitRating + escapeRating)) * 1.5f *
-                           (this._attacker.Object.Level * 1.2f / (this._attacker.Object.Level + this._defender.Object.Level)) * 100.0f);
-            }
-            else if (this._attacker.Type == WorldEntityType.Monster && this._defender.Type == WorldEntityType.Player)
+            if (this._attacker.Type == WorldEntityType.Monster && this._defender.Type == WorldEntityType.Player)
             {
                 // Monster VS Player
                 hitRate = (int)(((hitRating * 1.5f) / (hitRating + escapeRating)) * 2.0f *
@@ -106,7 +97,7 @@ namespace Rhisis.World.Systems.Battle
             }
             else 
             {
-                // Player VS Player
+                // Player VS Player or Player VS Monster
                 hitRate = (int)(((hitRating * 1.6f) / (hitRating + escapeRating)) * 1.5f *
                           (this._attacker.Object.Level * 1.2f / (this._attacker.Object.Level + this._defender.Object.Level)) * 100.0f);
             }
@@ -169,7 +160,11 @@ namespace Rhisis.World.Systems.Battle
             return RandomHelper.Random(0, 100) < criticalProbability;
         }
 
-        public void CalculateCriticalDamages(ref int attackMin, ref int attackMax)
+        /// <summary>
+        /// Calculate critical damages.
+        /// </summary>
+        /// <param name="attackResult">Attack result</param>
+        public void CalculateCriticalDamages(AttackResult attackResult)
         {
             float criticalMin = 1.1f;
             float criticalMax = 1.4f;
@@ -193,10 +188,15 @@ namespace Rhisis.World.Systems.Battle
             if (criticalBonus < 0.1f)
                 criticalBonus = 0.1f;
 
-            attackMin = (int)(attackMin * criticalMin * criticalBonus);
-            attackMax = (int)(attackMax * criticalMax * criticalBonus);
+            attackResult.AttackMin = (int)(attackResult.AttackMin * criticalMin * criticalBonus);
+            attackResult.AttackMax = (int)(attackResult.AttackMax * criticalMax * criticalBonus);
         }
 
+        /// <summary>
+        /// Check if the current attack is a chance to knockback the defender.
+        /// </summary>
+        /// <param name="attackerAttackFlags">Attacker attack flags</param>
+        /// <returns></returns>
         public bool IsKnockback(AttackFlags attackerAttackFlags)
         {
             bool knockbackChance = RandomHelper.Random(0, 100) < 15;
