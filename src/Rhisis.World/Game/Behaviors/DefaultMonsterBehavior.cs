@@ -18,6 +18,14 @@ namespace Rhisis.World.Game.Behaviors
         /// <inheritdoc />
         public virtual void Update(IMonsterEntity entity)
         {
+            if (entity.Health.IsDead)
+            {
+                if (entity.TimerComponent.DespawnTime < Time.TimeInSeconds())
+                {
+                    // TODO: send despawn
+                }
+            }
+
             this.UpdateArivalState(entity);
 
             if (!entity.Follow.IsFollowing)

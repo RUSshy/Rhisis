@@ -11,7 +11,7 @@ namespace Rhisis.World.Game.Entities
         /// <summary>
         /// Gets or sets the parent region of the monster.
         /// </summary>
-        IMapRegion Region { get; set; }
+        IMapRespawnRegion Region { get; set; }
 
         /// <summary>
         /// Gets the monster's behavior.

@@ -15,7 +15,7 @@ namespace Rhisis.World.Game.Entities
         public override WorldEntityType Type => WorldEntityType.Monster;
 
         /// <inheritdoc />
-        public IMapRegion Region { get; set; }
+        public IMapRespawnRegion Region { get; set; }
 
         /// <inheritdoc />
         public MovableComponent MovableComponent { get; set; }

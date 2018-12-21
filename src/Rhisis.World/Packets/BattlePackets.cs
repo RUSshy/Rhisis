@@ -43,5 +43,17 @@ namespace Rhisis.World.Packets
                 SendToVisible(packet, player);
             }
         }
+
+        public static void SendDie(IPlayerEntity player, ILivingEntity deadEntity, ILivingEntity killerEntity, ObjectMessageType motion)
+        {
+            using (var packet = new FFPacket())
+            {
+                packet.StartNewMergedPacket(deadEntity.Id, SnapshotType.MOVERDEATH);
+                packet.Write((int)motion);
+                packet.Write(killerEntity.Id);
+
+                SendToVisible(packet, player, sendToPlyer: true);
+            }
+        }
     }
 }
