@@ -51,7 +51,7 @@ namespace Rhisis.World.Systems.Battle
                 case WeaponType.MELEE_KNUCKLE:
                     attribute = player.Statistics.Strength - 10;
                     levelFactor = player.Object.Level * 1.2f;
-                    jobFactor = player.PlayerData.JobData.MeleeKnucle;
+                    jobFactor = player.PlayerData.JobData.MeleeKnuckle;
                     break;
                 case WeaponType.MAGIC_WAND:
                     attribute = player.Statistics.Intelligence - 10;
