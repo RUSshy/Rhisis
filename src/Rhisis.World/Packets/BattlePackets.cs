@@ -1,4 +1,5 @@
-﻿using Rhisis.Network;
+﻿using Rhisis.Core.Data;
+using Rhisis.Network;
 using Rhisis.Network.Packets;
 using Rhisis.World.Game.Common;
 using Rhisis.World.Game.Entities;
@@ -29,12 +30,12 @@ namespace Rhisis.World.Packets
             }
         }
 
-        public static void SendMeleeAttack(IPlayerEntity player, int motion, int targetId, int unknwonParam, int attackFlags)
+        public static void SendMeleeAttack(IPlayerEntity player, ObjectMessageType motion, int targetId, int unknwonParam, int attackFlags)
         {
             using (var packet = new FFPacket())
             {
                 packet.StartNewMergedPacket(player.Id, SnapshotType.MELEE_ATTACK);
-                packet.Write(motion);
+                packet.Write((int)motion);
                 packet.Write(targetId);
                 packet.Write(unknwonParam);
                 packet.Write(attackFlags);

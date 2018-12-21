@@ -1,4 +1,5 @@
 ﻿using Ether.Network.Packets;
+using Rhisis.Core.Data;
 using System;
 
 namespace Rhisis.Network.Packets.World
@@ -17,54 +18,46 @@ namespace Rhisis.Network.Packets.World
         /// Gets the object id.
         /// </summary>
         public uint ObjectId { get; }
-
-<<<<<<< HEAD
-<<<<<<< HEAD
+        
         /// <summary>
-        /// Gets the second parameter.
+        /// Gets the unknown parameter.
         /// </summary>
-        public int Parameter2 { get; set; }
-
+        public int UnknownParameter { get; }
+        
         /// <summary>
-        /// Gets the third parameter.
+        /// Gets the attack flags.
         /// </summary>
-        public int Parameter3 { get; set; }
+        public int AttackFlags { get; }
 
         /// <summary>
         /// Gets the attack speed.
         /// </summary>
-=======
-=======
-        public int UnknownParameter { get; set; }
-
->>>>>>> Add send melee attack packet to visible players
-        public int AttackFlags { get; }
-
->>>>>>> Add melee attack miss flag
         public float WeaponAttackSpeed { get; }
 
+        /// <summary>
+        /// Creates a new <see cref="MeleeAttackPacket"/> instance.
+        /// </summary>
+        /// <param name="packet">Incoming packet</param>
         public MeleeAttackPacket(INetPacketStream packet)
         {
-<<<<<<< HEAD
-            this.AttackMessage = (ObjectMessageType)packet.Read<uint>();
+            this.AttackMessage = (ObjectMessageType)packet.Read<int>();
             this.ObjectId = packet.Read<uint>();
-            this.Parameter2 = packet.Read<int>(); // Always 0
-            this.Parameter3 = packet.Read<int>(); // Possibly error number returned from client
-=======
-            this.AttackMessage = packet.Read<int>();
-            this.ObjectId = packet.Read<int>();
             this.UnknownParameter = packet.Read<int>(); // ??
             this.AttackFlags = packet.Read<int>() & 0xFFFF; // Attack flags ?!
->>>>>>> Add melee attack miss flag
             this.WeaponAttackSpeed = packet.Read<float>();
         }
 
+        /// <summary>
+        /// Compares two <see cref="MeleeAttackPacket"/> instances.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
         public bool Equals(MeleeAttackPacket other)
         {
             return this.AttackMessage == other.AttackMessage &&
                    this.ObjectId == other.ObjectId &&
-                   this.Parameter2 == other.Parameter2 &&
-                   this.Parameter3 == other.Parameter3 &&
+                   this.UnknownParameter == other.UnknownParameter &&
+                   this.AttackFlags == other.AttackFlags &&
                    this.WeaponAttackSpeed == other.WeaponAttackSpeed;
         }
     }
