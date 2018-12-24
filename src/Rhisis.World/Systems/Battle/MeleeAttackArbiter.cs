@@ -71,9 +71,24 @@ namespace Rhisis.World.Systems.Battle
             }
 
             attackResult.Damages = RandomHelper.Random(attackResult.AttackMin, attackResult.AttackMax);
-            if (attackResult.Damages < 0)
-                attackResult.Damages = 0;
+            attackResult.Damages -= this.GetDefenderDefense(attackResult);
 
+            if (attackResult.Damages > 0)
+            {
+                float blockFactor = this.GetDefenderBlockFactor();
+                if (blockFactor < 1f)
+                {
+                    attackResult.Flags |= AttackFlags.AF_BLOCKING;
+                    attackResult.Damages = (int)(attackResult.Damages * blockFactor);
+                }
+            }
+            else
+            {
+                attackResult.Damages = 0;
+                attackResult.Flags &= ~AttackFlags.AF_CRITICAL;
+                attackResult.Flags &= ~AttackFlags.AF_FLYING;
+            }
+            
             return attackResult;
         }
 
@@ -225,6 +240,106 @@ namespace Rhisis.World.Systems.Battle
             }
 
             return canFly && knockbackChance;
+        }
+
+        /// <summary>
+        /// Gets the defender defense.
+        /// </summary>
+        /// <param name="attackResult"></param>
+        /// <returns></returns>
+        public int GetDefenderDefense(AttackResult attackResult)
+        {
+            bool isGenericAttack = attackResult.Flags.HasFlag(AttackFlags.AF_GENERIC);
+
+            if (this._attacker.Type == WorldEntityType.Player && this._defender.Type == WorldEntityType.Player)
+                isGenericAttack = true;
+
+            if (isGenericAttack)
+            {
+                float factor = 1f;
+
+                if (this._defender is IPlayerEntity player)
+                    factor = player.PlayerData.JobData.DefenseFactor;
+
+                int stamina = this._defender.Statistics.Stamina;
+                int level = this._defender.Object.Level;
+                int defense = (int)(((((level * 2) + (stamina / 2)) / 2.8f) - 4) + ((stamina - 14) * factor));
+                // TODO: add defense armor
+                // TODO: add DST_ADJDEF
+
+                if (defense < 0)
+                    defense = 0;
+
+                return defense;
+            }
+
+            if (this._defender is IMonsterEntity monster)
+            {
+                var monsterDefenseArmor = attackResult.Flags.HasFlag(AttackFlags.AF_MAGIC) ? monster.Data.MagicResitance : monster.Data.NaturalArmor;
+
+                return (int)(monsterDefenseArmor / 7f + 1);
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Gets the defender blocking factor.
+        /// </summary>
+        /// <returns>Defender blocking factor</returns>
+        public float GetDefenderBlockFactor()
+        {
+            if (this._defender.Type == WorldEntityType.Player)
+            {
+                int blockRandomProbability = RandomHelper.Random(0, 80);
+
+                if (blockRandomProbability <= 5)
+                    return 1f;
+                if (blockRandomProbability >= 75f)
+                    return 0.1f;
+
+                int defenderLevel = this._defender.Object.Level;
+                int defenderDexterity = this._defender.Statistics.Dexterity;
+
+                float blockProbabilityA = defenderLevel / ((defenderLevel + this._attacker.Object.Level) * 15.0f);
+                float blockProbabilityB = (defenderDexterity + this._attacker.Statistics.Dexterity + 2) * ((defenderDexterity - this._attacker.Statistics.Dexterity) / 800.0f);
+
+                if (blockProbabilityB > 10.0f)
+                    blockProbabilityB = 10.0f;
+                float blockProbability = blockProbabilityA + blockProbabilityB;
+                if (blockProbability < 0.0f)
+                    blockProbability = 0.0f;
+
+                // TODO: range attack probability
+
+                var player = this._defender as IPlayerEntity;
+                int blockRate = (int)((defenderDexterity / 8.0f) * player.PlayerData.JobData.Blocking + blockProbability);
+
+                if (blockRate < 0)
+                    blockRate = 0;
+                
+                if (blockRate > blockRandomProbability)
+                    return 0f;
+            }
+            else if (this._defender.Type == WorldEntityType.Monster)
+            {
+                int blockRandomProbability = RandomHelper.Random(0, 100);
+
+                if (blockRandomProbability <= 5)
+                    return 1f;
+                if (blockRandomProbability >= 95)
+                    return 0f;
+
+                int blockRate = (int)((this.GetEspaceRating(this._defender) - this._defender.Object.Level) * 0.5f);
+
+                if (blockRate < 0)
+                    blockRate = 0;
+
+                if (blockRate > blockRandomProbability)
+                    return 0.2f;
+            }
+
+            return 1f;  
         }
     }
 }

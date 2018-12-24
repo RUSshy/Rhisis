@@ -63,6 +63,12 @@ namespace Rhisis.Core.Structures.Game
         [DataMember(Name = "dwClass")]
         public MoverClassType Class { get; set; }
 
+        [DataMember(Name = "dwNaturealArmor")]
+        public int NaturalArmor { get; set; }
+
+        [DataMember(Name = "dwResisMagic")]
+        public int MagicResitance { get; set; }
+
         public override string ToString() => this.Name;
     }
 }
